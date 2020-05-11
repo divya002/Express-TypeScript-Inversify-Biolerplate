@@ -10,7 +10,7 @@ import { UserDocument } from "../models/User";
  * List of API examples.
  */
 export const getApi = (req: Request, res: Response) => {
-    res.render("api/index", {
+    res.send({
         title: "API Examples"
     });
 };
@@ -25,7 +25,7 @@ export const getFacebook = (req: Request, res: Response, next: NextFunction) => 
     graph.setAccessToken(token.accessToken);
     graph.get(`${user.facebook}?fields=id,name,email,first_name,last_name,gender,link,locale,timezone`, (err: Error, results: graph.FacebookUser) => {
         if (err) { return next(err); }
-        res.render("api/facebook", {
+        res.send({
             title: "Facebook API",
             profile: results
         });
