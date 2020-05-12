@@ -96,12 +96,12 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
     },
 ).catch(err => {
     console.log("MongoDB connection error. Please make sure MongoDB is running. " + err);
-    // process.exit();
+    //process.exit();
 });
 
 
 /**
- * Primary app routes.
+ * Primary app routes.It wont work because we are DI Engine,It will work with normal express,Left for reference
  */
 app.get("/home", homeController.index);
 app.get("/login", userController.getLogin);
