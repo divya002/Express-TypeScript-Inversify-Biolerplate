@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
+import { MONGODB_URI } from "./secrets";
 
 export class DbConnection {
     public static async initConnection() {
-        process.env.DB_CONN_STR = `mongodb://${process.env.DB_IP}:${process.env.DB_PORT}/${process.env.DB_DB_NAME}`;
-        await DbConnection.connect(process.env.DB_CONN_STR);
+        await DbConnection.connect(MONGODB_URI,);
     }
 
     public static async connect(connStr: string) {
