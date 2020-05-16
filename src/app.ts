@@ -7,7 +7,6 @@ import session from "express-session";
 import bodyParser from "body-parser";
 import lusca from "lusca";
 import mongo from "connect-mongo";
-import flash from "express-flash";
 import path from "path";
 import mongoose from "mongoose";
 import passport from "passport";
@@ -15,20 +14,17 @@ import bluebird from "bluebird";
 import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
 import "./controllers/home.controller";
 import "./controllers/products.controller";
+import "./controllers/user.controller";
 import { DbConnection } from "./util/connection";
+import { CustomAuthProvider } from "./policies/customAuthProvider";
+import { getRouteInfo } from "inversify-express-utils";
+import * as prettyjson from "prettyjson";
 
 const MongoStore = mongo(session);
 const container = ContainerConfigLoader.Load();
 
-// Controllers (route handlers)
-import * as homeController from "./controllers/home";
-import * as userController from "./controllers/user";
-import * as apiController from "./controllers/api";
-import * as contactController from "./controllers/contact";
-
-
 // API keys and Passport configuration
-import * as passportConfig from "./config/passport";
+//import * as passportConfig from "./config/passport";
 
 // Create Express server
 const app = express();
@@ -41,10 +37,13 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
     () => {
         /** ready to use. The `mongoose.connect()` promise resolves to undefined. */
         DbConnection.setAutoReconnect();
-
+        const router = express.Router({
+            caseSensitive: false,
+            mergeParams: false,
+            strict: false
+        });
         // start the server
-        const server = new InversifyExpressServer(container);
-
+        const server = new InversifyExpressServer(container, router, { rootPath: "/api/v1" }, null, CustomAuthProvider);
         server.setConfig((app) => {
             // Express configuration
             app.set("port", process.env.PORT || 3000);
@@ -62,25 +61,10 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
             }));
             app.use(passport.initialize());
             app.use(passport.session());
-            app.use(flash());
             app.use(lusca.xframe("SAMEORIGIN"));
             app.use(lusca.xssProtection(true));
             app.use((req, res, next) => {
                 res.locals.user = req.user;
-                next();
-            });
-            app.use((req, res, next) => {
-                // After successful login, redirect back to the intended page
-                if (!req.user &&
-                    req.path !== "/login" &&
-                    req.path !== "/signup" &&
-                    !req.path.match(/^\/auth/) &&
-                    !req.path.match(/\./)) {
-                    req.session.returnTo = req.path;
-                } else if (req.user &&
-                    req.path == "/account") {
-                    req.session.returnTo = req.path;
-                }
                 next();
             });
 
@@ -92,47 +76,15 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
 
         const serverInstance = server.build();
         serverInstance.listen(process.env.PORT);
+        const routeInfo = getRouteInfo(container);
+
+        console.log(prettyjson.render({ routes: routeInfo }));
+
         console.log(`Server started on port ${process.env.PORT} :)`);
     },
 ).catch(err => {
     console.log("MongoDB connection error. Please make sure MongoDB is running. " + err);
     //process.exit();
-});
-
-
-/**
- * Primary app routes.It wont work because we are DI Engine,It will work with normal express,Left for reference
- */
-app.get("/home", homeController.index);
-app.get("/login", userController.getLogin);
-app.post("/login", userController.postLogin);
-app.get("/logout", userController.logout);
-app.get("/forgot", userController.getForgot);
-app.post("/forgot", userController.postForgot);
-app.get("/reset/:token", userController.getReset);
-app.post("/reset/:token", userController.postReset);
-app.get("/signup", userController.getSignup);
-app.post("/signup", userController.postSignup);
-app.get("/contact", contactController.getContact);
-app.post("/contact", contactController.postContact);
-app.get("/account", passportConfig.isAuthenticated, userController.getAccount);
-app.post("/account/profile", passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post("/account/password", passportConfig.isAuthenticated, userController.postUpdatePassword);
-app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.get("/account/unlink/:provider", passportConfig.isAuthenticated, userController.getOauthUnlink);
-
-/**
- * API examples routes.
- */
-app.get("/api", apiController.getApi);
-app.get("/api/facebook", passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFacebook);
-
-/**
- * OAuth authentication routes. (Sign in)
- */
-app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
-app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
-    res.redirect(req.session.returnTo || "/");
 });
 
 export default app;
