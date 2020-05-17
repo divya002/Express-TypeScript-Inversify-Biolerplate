@@ -14,7 +14,7 @@ export class ProductsController extends BaseHttpController {
         super();
     }
 
-    @httpGet("/")
+    @httpGet("/",TYPES.AuthMiddleware)
     public async getProducts(req: Request, res: Response, next: NextFunction): Promise<JsonResult> {
         const token = this._httpContext.request.headers["postman-token"];
         console.log(token);

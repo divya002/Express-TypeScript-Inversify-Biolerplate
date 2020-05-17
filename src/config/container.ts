@@ -5,6 +5,8 @@ import { UserService } from "../services/user.service";
 import {Logger} from "../util/logger";
 import TYPES from "../constants/types";
 import {LoggerMiddleware} from "../policies/logger.Middleware";
+import {AuthMiddleware} from "../policies/auth.Middleware";
+
 
 export class ContainerConfigLoader {
     public static Load(): Container {
@@ -14,6 +16,7 @@ export class ContainerConfigLoader {
         container.bind<UserService>(TYPES.UserService).to(UserService);
         container.bind<Logger>(TYPES.Logger).to(Logger);
         container.bind<LoggerMiddleware>(TYPES.LoggerMiddleware).to(LoggerMiddleware);
+        container.bind<AuthMiddleware>(TYPES.AuthMiddleware).to(AuthMiddleware);
         return container;
     }
 }

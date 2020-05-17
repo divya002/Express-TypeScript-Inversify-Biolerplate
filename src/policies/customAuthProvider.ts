@@ -6,12 +6,12 @@ import TYPES from "../constants/types";
 
 class Principal implements interfaces.Principal {
     public details: any;
-    public constructor(details: any) {
-        this.details = details;
+    public constructor(user: any) {
+        this.details = user;
     }
     public isAuthenticated(): Promise<boolean> {
         console.log("Is Authenticated");
-        return Promise.resolve(true);
+        return Promise.resolve(!!this.details);
     }
     public isResourceOwner(resourceId: any): Promise<boolean> {
         return Promise.resolve(resourceId === 1111);
@@ -24,17 +24,15 @@ class Principal implements interfaces.Principal {
 @injectable()
 export class CustomAuthProvider implements interfaces.AuthProvider {
     @inject(TYPES.UserService) private _userService: UserService;
-
     public async getUser(
         req: Request,
         res: Response,
         next: NextFunction
     ): Promise<interfaces.Principal> {
-        const token: string = req.headers["postman-token"] as string;
+        const token: string = req.headers["token"] as string;
         const user = await this._userService.getUser(token);
         const principal = new Principal(user);
         return principal;
     }
-
 }
 

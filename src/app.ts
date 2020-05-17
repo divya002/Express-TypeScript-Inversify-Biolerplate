@@ -57,7 +57,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
                 store: new MongoStore({
                     url: mongoUrl,
                     autoReconnect: true
-                })
+                })  
             }));
             app.use(passport.initialize());
             app.use(passport.session());
