@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { interfaces } from "inversify-express-utils";
-import {Request, Response, NextFunction} from "express";
-import { UserService} from "../services/user.service";
+import { Request, Response, NextFunction } from "express";
+import { UserService } from "../services/user.service";
 import TYPES from "../constants/types";
 
 class Principal implements interfaces.Principal {
@@ -29,10 +29,22 @@ export class CustomAuthProvider implements interfaces.AuthProvider {
         res: Response,
         next: NextFunction
     ): Promise<interfaces.Principal> {
-        const token: string = req.headers["token"] as string;
-        const user = await this._userService.getUser(token);
-        const principal = new Principal(user);
-        return principal;
+
+        if (req.isAuthenticated) {
+            const token: string = (req.headers["authorization"])?.split(" ")[1];
+            if (token) {
+                const user = await this._userService.getUser(token);
+                const principal = new Principal(user);
+                return principal;
+            } else {
+                res.send({
+                    "message":
+                        "Please provide token if already logged in."
+                }
+                );
+            }
+            return;
+        }
     }
 }
 

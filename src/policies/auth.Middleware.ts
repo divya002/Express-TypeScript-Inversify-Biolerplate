@@ -12,7 +12,7 @@ export class AuthMiddleware extends BaseMiddleware {
         if (await req.isAuthenticated()) {
             next();
         } else {
-            res.send({ 
+            return res.status(401).send({ 
                 "message":"Not Valid authorization"
             });
         }

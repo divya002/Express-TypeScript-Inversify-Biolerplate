@@ -54,7 +54,7 @@ export class UserController extends BaseHttpController {
 
         } catch (err) {
             return this.json({
-                error:err,
+                error:err.message,
                 data: null,
                 message: "Something went wrong"
             }, 403);
