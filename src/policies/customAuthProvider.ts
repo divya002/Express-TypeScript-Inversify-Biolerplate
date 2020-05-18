@@ -39,7 +39,7 @@ export class CustomAuthProvider implements interfaces.AuthProvider {
             } else {
                 res.send({
                     "message":
-                        "Please provide token if already logged in."
+                        "Please provide token if already had logged in."
                 }
                 );
             }
